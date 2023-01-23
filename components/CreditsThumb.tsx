@@ -58,6 +58,12 @@ const CreditsThumb: React.FunctionComponent<any> = ({ credits }) => {
             },
             1440: {
               slidesPerView: 4,
+
+
+
+
+
+              
             },
           }}
           navigation={true}
