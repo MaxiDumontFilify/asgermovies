@@ -1,8 +1,18 @@
-import { Container, Grid, Rating, Typography } from "@mui/material";
+import { Container, Grid, IconButton, Rating, Typography } from "@mui/material";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import CreditsThumb from "@components/CreditsThumb";
+import FavoriteIcon from "@mui/icons-material/Favorite";
+import {
+  collection,
+  getDocs,
+  query,
+  where,
+} from "firebase/firestore";
+import { useAuth } from "context/AuthContext";
+import { db } from "config/firebase";
+import { like22 } from "components/LikeHandler/LikeHandler";
 
 const API_KEY = process.env.NEXT_PUBLIC_API_KEY;
 
@@ -33,11 +43,11 @@ const gradientBorder = {
 
 function MovieDetailPage() {
   const router = useRouter();
-  const { movieid } = router.query;
+  const  {movieid}  = router.query;
+  const [movie, setMovie]: any = useState([]);
+  const [like, setLike] = useState(Boolean);
+  const { user } = useAuth();
 
-  const [movie, setMovie]: any = useState(
-    null || "" || undefined || [] || {} || 0 || false || NaN || Symbol()
-  );
   useEffect(() => {
     if (movieid) {
       try {
@@ -54,6 +64,7 @@ function MovieDetailPage() {
     }
   }, [movieid]);
   const [credits, setCredits]: any = useState();
+
   useEffect(() => {
     if (movieid) {
       try {
@@ -69,7 +80,28 @@ function MovieDetailPage() {
       }
     }
   }, [movieid]);
-  console.log(credits);
+
+  const hey = Array.isArray(movieid) ? movieid[0] : movieid 
+  const id = parseInt(hey ?? "0")
+
+  useEffect(() => {
+    if (user) {
+      const q = query(
+        collection(db, "users", user.uid, "likedMovies"),
+        where("id", "==", id)
+      );
+      getDocs(q).then((querySnapshot) => {
+        if (querySnapshot.size > 0) {
+          setLike(true);
+        } else {
+          setLike(false);
+        }
+      });
+    }
+  }, [user, movie]);
+
+
+  const LikeMovieHandler = like22(user, like, movie, setLike);
 
   return (
     <Grid
@@ -107,10 +139,22 @@ function MovieDetailPage() {
             marginLeft: "5%",
           }}
         >
+
+          <IconButton
+            sx={{
+              color: "white",
+              backgroundColor: "rgba(0,0,0,0.5)",
+              "&:hover": {
+                color: "#01b4e4",
+              },
+            }}
+            onClick={LikeMovieHandler}
+          >
+            {like ? <FavoriteIcon color="primary" /> : <FavoriteIcon />}
+          </IconButton>
           <Image
             src={
-              movie.poster_path
-                ? `https://image.tmdb.org/t/p/original${movie.poster_path}`
+              movie.poster_path ?`https://image.tmdb.org/t/p/original${movie.poster_path}`
                 : "/NonePoster.webp"
             }
             height={500}
