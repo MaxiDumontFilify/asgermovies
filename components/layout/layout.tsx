@@ -1,8 +1,8 @@
-import { Fragment } from 'react';
+import { Fragment, JSXElementConstructor, ReactElement, ReactFragment, ReactPortal } from 'react';
 
 import MainNavigation from './main-navigation';
 
-function Layout(props) {
+function Layout(props: { children: string | number | boolean | ReactElement<any, string | JSXElementConstructor<any>> | ReactFragment | ReactPortal | null | undefined; }) {
   return (
     <Fragment>
       <MainNavigation />

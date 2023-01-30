@@ -1,62 +1,57 @@
 import * as React from "react";
 import Card from "@mui/material/Card";
-import CardHeader from "@mui/material/CardHeader";
 import CardMedia from "@mui/material/CardMedia";
 import CardContent from "@mui/material/CardContent";
 import CardActions from "@mui/material/CardActions";
 import IconButton from "@mui/material/IconButton";
 import Typography from "@mui/material/Typography";
 import FavoriteIcon from "@mui/icons-material/Favorite";
-import { Link } from "@mui/material";
+import { Grid, Link } from "@mui/material";
 import { db } from "../config/firebase";
-import {
-  collection,
-  getDocs,
-  query,
-  where,
-} from "firebase/firestore";
+import { collection, getDocs, query, where } from "firebase/firestore";
 import { useAuth } from "../context/AuthContext";
 import { useState } from "react";
-import { like22 } from "../components/LikeHandler/LikeHandler";
+import { likeMovie } from "../Handlers/LikeHandler/LikeHandler";
+import { RatingCircle } from "./ratingCircle/ratingCircle";
+import { Movie } from "utils/types";
 
 const BASE_URL = "https://image.tmdb.org/t/p/original";
 
-export default function RecipeReviewCard(results: any) {
-  const movie = results.result;
 
+export default function RecipeReviewCard({ result }: { result: Movie }) {
+  const movie = result
+  const value = movie.vote_average * 10;
   const [like, setLike] = useState(false);
-
   const { user } = useAuth();
 
   React.useEffect(() => {
-    const ref = collection(db, "users", user.uid, "likedMovies");
-    const q = query(ref, where("id", "==", movie.id));
-    const querySnapshot = getDocs(q);
-    querySnapshot.then((querySnapshot) => {
+    const GetMovieLikes = async () => {
+      const ref = collection(db, "users", user.uid, "likedMovies");
+      const q = query(ref, where("id", "==", movie.id));
+      const querySnapshot = await getDocs(q);
       querySnapshot.forEach(() => {
         setLike(true);
       });
-    });
-  }, [movie.id, user.uid]);
+    };
+    GetMovieLikes();
+  }, [user, movie.id]);
 
-  const LikeMovieHandler = like22(user, like, movie, setLike);
+  const LikeMovieHandler = likeMovie(user, like, movie, setLike);
 
-  return (
+  return ( 
     <Card
       sx={{
-        maxWidth: 300,
+        maxWidth: 220,
         borderRadius: "10px",
-        boxShadow: "0 0 10px 0 rgba(0,0,0,0.2)",
+        boxShadow: "0 0 10px 0 rgba(0,0,0,0.9)",
         transition: "0.3s",
+        margin: "1em",
         "&:hover": {
-          boxShadow: "0 0 10px 0 #fff",
+          boxShadow: "0 0 10px 0 rgba(0,0,0,0.5)",
         },
       }}
+      key={movie.id}
     >
-      <CardHeader
-        title={movie.title.substring(0, 16) || movie.original_title}
-        subheader={movie.release_date || movie.first_air_date}
-      />
       <Link href={`/dashboard/${movie.id}`}>
         <CardMedia
           component="img"
@@ -65,25 +60,58 @@ export default function RecipeReviewCard(results: any) {
           alt={movie.title}
         />
       </Link>
-      <CardContent>
-        <Typography variant="body2" color="text.secondary">
-          {movie.overview.substring(0, 100) + "..."}
-        </Typography>
-      </CardContent>
-      <CardActions disableSpacing>
+      <Grid
+        sx={{
+          display: "flex",
+          justifyContent: "right",
+          alignItems: "center",
+          marginTop: "0.5em",
+          marginRight: "0.5em",
+        }}
+      >
+        {RatingCircle(value)}
         <IconButton
           sx={{
+            color: "white",
+            marginLeft: "5.1em",
+            backgroundColor: "rgba(0,0,0,0.5)",
+
             "&:hover": {
               color: "#01b4e4",
             },
           }}
-          aria-label="add to favorites"
-          onClick={LikeMovieHandler}
+          onClick={() => {
+            LikeMovieHandler();
+          }}
         >
           {like ? <FavoriteIcon color="primary" /> : <FavoriteIcon />}
         </IconButton>
-      </CardActions>
-
+      </Grid>
+      <CardContent>
+        <Typography
+          variant="body2"
+          color="text.secondary"
+          sx={{
+            fontSize: "0.8rem",
+            color: "black",
+            fontWeight: "bold",
+          }}
+        >
+          {movie.title || movie.original_title}
+        </Typography>
+        <Typography
+          variant="body2"
+          color="text.secondary"
+          sx={{
+            fontSize: "0.7rem",
+            color: "grey",
+            fontWeight: "bold",
+          }}
+        >
+          {movie.release_date}
+        </Typography>
+      </CardContent>
+      <CardActions disableSpacing></CardActions>
     </Card>
   );
 }

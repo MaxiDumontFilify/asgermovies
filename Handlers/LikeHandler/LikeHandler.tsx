@@ -9,7 +9,7 @@ import {
 } from "firebase/firestore";
 
 
-export function like22(user: any, like: boolean, movie: any, setLike: React.Dispatch<React.SetStateAction<boolean>>) {
+export function likeMovie(user: any, like: boolean, movie: any, setLike: React.Dispatch<React.SetStateAction<boolean>>) {
     return async () => {
       const ref = collection(db, "users", user.uid, "likedMovies");
       if (!like) {
@@ -35,3 +35,7 @@ export function like22(user: any, like: boolean, movie: any, setLike: React.Disp
       }
     };
   }
+  
+
+  
+  

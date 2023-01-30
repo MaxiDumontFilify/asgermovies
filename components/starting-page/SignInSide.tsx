@@ -76,6 +76,7 @@ export default function SignInSide() {
       try {
         await signup(data.email, data.password);
         setOpenSuccess(true);
+        router.push("/dashboard");
         setMessageSuccess("Account created successfully");
       } catch (err: any) {
         setOpenError(true);
